@@ -1,8 +1,27 @@
 version: "3"
 
 services:
+  db:
+    image: mysql:8.0
+    platform: linux/amd64
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
   app:
     build: .
     image: venus
+    ports:
+      - 3000:3000
     volumes:
       - .:/usr/src
+      - /usr/src/tmp/pids
+    environment:
+      - DATABASE_URL=mysql2://root:root@db/venus?charset=utf8&encoding=utf8&collation=utf8_general_ci
+    depends_on:
+      - db
+    command: sh -c "rm -f tmp/pids/server.pid && bin/rails s -b 0.0.0.0 -p 3000"
+
+volumes:
+  db-data:
+    driver: local
