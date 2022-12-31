@@ -6,9 +6,12 @@ module TweetsTest
   # UpdateTest
   class UpdateTest < ActionDispatch::IntegrationTest
     test 'when tweet is not found' do
-      assert_raises(ActiveRecord::RecordNotFound) do
-        put '/tweets/1', params: { message: 'updated' }
-      end
+      get '/tweets/1'
+
+      assert_equal(
+        { status: 'not_found', message: "Couldn't find Tweet with 'id'=1" },
+        parse_response_body
+      )
     end
 
     test 'when params is valid' do
@@ -25,9 +28,11 @@ module TweetsTest
       created_response = create_tweet({ message: 'test' })
       tweet_id = created_response[:id]
 
-      assert_raises(ActiveRecord::RecordInvalid) do
-        put "/tweets/#{tweet_id}", params: { message: '' }
-      end
+      put "/tweets/#{tweet_id}", params: { message: '' }
+      assert_equal(
+        { status: 'unprocessable_entity', message: "Validation failed: Message can't be blank" },
+        parse_response_body
+      )
 
       get "/tweets/#{tweet_id}"
       assert_equal created_response, parse_response_body
