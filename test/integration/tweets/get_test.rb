@@ -6,9 +6,12 @@ module TweetsTest
   # GetTest
   class GetTest < ActionDispatch::IntegrationTest
     test 'when tweet is not found' do
-      assert_raises(ActiveRecord::RecordNotFound) do
-        get '/tweets/1'
-      end
+      get '/tweets/1'
+
+      assert_equal(
+        { status: 'not_found', message: "Couldn't find Tweet with 'id'=1" },
+        parse_response_body
+      )
     end
 
     test 'when tweet is found' do

@@ -6,9 +6,11 @@ module TweetsTest
   # DestroyTest
   class DestroyTest < ActionDispatch::IntegrationTest
     test 'when tweet is not found' do
-      assert_raises(ActiveRecord::RecordNotFound) do
-        delete '/tweets/1'
-      end
+      delete '/tweets/1'
+      assert_equal(
+        { status: 'not_found', message: "Couldn't find Tweet with 'id'=1" },
+        parse_response_body
+      )
     end
 
     test 'when tweet is found' do
@@ -16,11 +18,13 @@ module TweetsTest
       tweet_id = created_response[:id]
 
       delete "/tweets/#{tweet_id}"
-
       assert_equal({ status: 'ok', message: 'deleted' }, parse_response_body)
-      assert_raises(ActiveRecord::RecordNotFound) do
-        get "/tweets/#{tweet_id}"
-      end
+
+      get "/tweets/#{tweet_id}"
+      assert_equal(
+        { status: 'not_found', message: "Couldn't find Tweet with 'id'=#{tweet_id}" },
+        parse_response_body
+      )
     end
   end
 end

@@ -6,25 +6,33 @@ module TweetsTest
   # CreateTest
   class CreateTest < ActionDispatch::IntegrationTest
     test 'when params is valid' do
-      before_count = Tweet.count
+      get '/tweets'
+      before_index_response = parse_response_body
 
       post '/tweets', params: { message: 'test' }
+      created_response = parse_response_body
+      assert_equal 'test', created_response[:message]
 
-      tweet = Tweet.last
+      get '/tweets'
 
-      assert_equal before_count + 1, Tweet.count
-      assert_equal TweetSerializer.to_json(tweet), @response.body
-      assert_equal 'test', parse_response_body[:message]
+      assert_equal(
+        before_index_response + [created_response],
+        parse_response_body
+      )
     end
 
     test 'when params is invalid' do
-      before_count = Tweet.count
+      get '/tweets'
+      before_index_response = parse_response_body
+      
+      post '/tweets', params: { message: '' }
+      assert_equal(
+        { status: 'unprocessable_entity', message: "Validation failed: Message can't be blank" },
+        parse_response_body
+      )
 
-      assert_raises(ActiveRecord::RecordInvalid) do
-        post '/tweets', params: { message: '' }
-      end
-
-      assert_equal before_count, Tweet.count
+      get '/tweets'
+      assert_equal before_index_response, parse_response_body
     end
   end
 end
