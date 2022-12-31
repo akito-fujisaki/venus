@@ -17,7 +17,7 @@ services:
       - .:/usr/src
       - /usr/src/tmp/pids
     environment:
-      - DATABASE_URL=mysql2://root:root@db/venus?charset=utf8&encoding=utf8&collation=utf8_general_ci
+      - DATABASE_URL=mysql2://root:root@db/venus
     depends_on:
       - db
     command: sh -c "rm -f tmp/pids/server.pid && bin/rails s -b 0.0.0.0 -p 3000"

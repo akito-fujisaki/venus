@@ -1,16 +1,27 @@
 # frozen_string_literal: true
 
-ENV["RAILS_ENV"] ||= "test"
-require_relative "../config/environment"
-require "rails/test_help"
+ENV['RAILS_ENV'] ||= 'test'
+require_relative '../config/environment'
+require 'rails/test_help'
 require 'debug'
 
-class ActiveSupport::TestCase
-  # Run tests in parallel with specified workers
-  parallelize(workers: :number_of_processors)
+# IntegrationTestHelper
+module IntegrationTestHelper
+  # @param response_body [String]
+  # @return [Hash<Symbol, Object>]
+  def parse_response_body
+    JSON.parse(@response.body, symbolize_names: true)
+  end
 
-  # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
-  fixtures :all
+  # @param params [Hash<Symbol, Object>]
+  # @return [Hash<Symbol, Object>]
+  def create_tweet(params)
+    post '/tweets', params: params
+    parse_response_body
+  end
+end
 
-  # Add more helper methods to be used by all tests here...
+# ActionDispatch::IntegrationTest
+class ActionDispatch::IntegrationTest
+  include IntegrationTestHelper
 end
