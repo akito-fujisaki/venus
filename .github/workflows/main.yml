@@ -17,6 +17,6 @@ jobs:
         run: docker compose up db -d
       - run: sleep 8
       - name: Create db and load schema
-        run: docker compose run --rm --no-deps backend bash -c "rails db:create db:schema:load RAILS_ENV=test"
+        run: docker compose run --rm --no-deps backend bash -c "rails db:create RAILS_ENV=test"
       - name: Test
         run: docker compose run --rm --no-deps backend bash -c "rails test"
