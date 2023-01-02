@@ -13,10 +13,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build image
         run: docker compose build backend
-      - name: Up container
+      - name: Up dependency container
         run: docker compose up db -d
-      - run: sleep 10
-      - name: Create db and load schema
+      - name: Wait for db container
+        run: sleep 10
+      - name: Create test db
         run: docker compose run --rm --no-deps backend bash -c "rails db:create RAILS_ENV=test"
-      - name: Test
+      - name: Run test
         run: docker compose run --rm --no-deps backend bash -c "rails test"

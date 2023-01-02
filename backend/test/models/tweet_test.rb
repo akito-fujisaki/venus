@@ -21,8 +21,4 @@ class TweetTest < ActiveSupport::TestCase
     assert tweet.invalid?
     assert_equal({ message: ['is too long (maximum is 255 characters)'] }, tweet.errors.messages)
   end
-
-  test 'tmp' do
-    assert false
-  end
 end
