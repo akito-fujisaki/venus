@@ -1,6 +1,14 @@
 version: "3"
 
 services:
+  terraform:
+    build: ./terraform
+    image: venus_terraform
+    volumes:
+      - ./terraform:/terraform
+      - ~/.aws:/root/.aws:ro
+    environment:
+      - AWS_PROFILE=terraform
   db:
     image: mysql:8.0
     platform: linux/amd64
