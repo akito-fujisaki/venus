@@ -14,6 +14,8 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
+      - name: Up dependency container
+        run: docker compose up db -d
       - name: Restore docker layer cache
         uses: actions/cache@v3
         with:
@@ -21,7 +23,7 @@ jobs:
           key: ${{ github.ref }}-${{ github.sha }}
           restore-keys: |
             ${{ github.ref }}
-            refs/head/main
+            refs/heads/main
       - name: Build image
         uses: docker/build-push-action@v2
         with:
@@ -38,10 +40,6 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-      - name: Up dependency container
-        run: docker compose up db -d
-      - name: Wait for db container
-        run: sleep 10
       - name: Create test db
         run: docker compose run --rm --no-deps backend bash -c "rails db:create RAILS_ENV=test"
       - name: Run test
