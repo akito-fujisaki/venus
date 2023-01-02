@@ -16,13 +16,13 @@ services:
       - db-data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
-  rails:
-    build: ./rails
-    image: venus_rails
+  backend:
+    build: ./backend
+    image: venus_backend
     ports:
       - 3000:3000
     volumes:
-      - ./rails:/app
+      - ./backend:/src
       - /app/tmp/pids
     environment:
       - DATABASE_URL=mysql2://root:root@db/venus
