@@ -8,14 +8,14 @@ services:
       - db-data:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
-  app:
-    build: .
-    image: venus
+  rails:
+    build: ./rails
+    image: venus_rails
     ports:
       - 3000:3000
     volumes:
-      - .:/usr/src
-      - /usr/src/tmp/pids
+      - ./rails:/app
+      - /app/tmp/pids
     environment:
       - DATABASE_URL=mysql2://root:root@db/venus
     depends_on:

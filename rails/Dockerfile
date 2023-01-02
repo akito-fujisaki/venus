@@ -6,11 +6,11 @@ RUN apt-get update && \
       git \
       libmariadb-dev-compat \
       libmariadb-dev && \
-    apt-get clean 
+    apt-get clean
 
-WORKDIR /usr/src
+WORKDIR /app
 
-COPY Gemfile Gemfile.lock /usr/src/
+COPY Gemfile Gemfile.lock /app
 
 RUN bundle install -j4
 
