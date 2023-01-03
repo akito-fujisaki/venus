@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: docker compose run --rm terraform ash -c "cd common && terraform fmt -diff=true -check=true"
-      - run: docker compose run --rm terraform ash -c "cd staging && terraform fmt -diff=true -check=true"
+      - run: docker compose run --rm terraform ash -c "cd test && terraform fmt -diff=true -check=true"
   backend-lint-test:
     runs-on: ubuntu-latest
     steps:
