@@ -12,17 +12,17 @@ resource "aws_ecr_lifecycle_policy" "main" {
   repository = aws_ecr_repository.main.name
 
   policy = jsonencode({
-    rules: [
+    rules : [
       {
-        rulePriority: 1,
-        description: "venus-ecr-lifecycle-policy-main",
-        selection: {
-          tagStatus: "any",
-          countType: "imageCountMoreThan",
-          countNumber: 2
+        rulePriority : 1,
+        description : "venus-ecr-lifecycle-policy-main",
+        selection : {
+          tagStatus : "any",
+          countType : "imageCountMoreThan",
+          countNumber : 2
         },
-        action: {
-          type: "expire"
+        action : {
+          type : "expire"
         }
       }
     ]
