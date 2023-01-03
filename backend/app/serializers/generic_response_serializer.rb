@@ -5,8 +5,8 @@ class GenericResponseSerializer < BaseSerializer
   # @return [Hash<Symbol, Object>]
   def to_h
     {
-      status: object[:status],
-      message: object[:message]
+      status: object.fetch(:status),
+      message: String(object[:message])
     }
   end
 end
