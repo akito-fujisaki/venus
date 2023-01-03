@@ -1,5 +1,5 @@
 locals {
-  env     = "stg"
+  env     = "test"
   product = "venus"
 
   default_tags = {
