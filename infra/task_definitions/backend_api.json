@@ -1,0 +1,60 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "$IMAGE_URI",
+      "cpu": 0,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "entryPoint": [],
+      "command": [
+        "rails",
+        "s",
+        "-b",
+        "0.0.0.0"
+      ],
+      "environment": [
+        {
+          "name": "RAILS_ENV",
+          "value": "production"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "$SECRETS_MANAGER_ARN:DATABASE_URL::"
+        }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/${APP_NAME}-${DEPROY_ENV}",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "backend/api"
+        }
+      }
+    }
+  ],
+  "family": "${APP_NAME}-${DEPROY_ENV}-backend-api",
+  "taskRoleArn": "$TASK_ROLE_ARN",
+  "executionRoleArn": "$TASK_EXECUTION_ROLE_ARN",
+  "networkMode": "awsvpc",
+  "volumes": [],
+  "placementConstraints": [],
+  "runtimePlatform": {
+    "operatingSystemFamily": "LINUX"
+  },
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}
