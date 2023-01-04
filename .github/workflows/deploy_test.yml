@@ -6,7 +6,7 @@ on: [push]
 permissions:
   contents: read
 env:
-  APP: venus
+  APP_NAME: venus
   DEPROY_ENV: test
   AWS_REGION: ap-northeast-1
   ECR_REPOSITORY_BACKEND: venus-backend
@@ -23,11 +23,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Build task definition
         run: |
-          export IMAGE_URI=${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_BACKEND }}:${{ github.sha }}
-          export TASK_ROLE_ARN=$(aws iam get-role --role-name ${{ env.APP }}-${{ env.DEPROY_ENV }}-ecs-task-role | jq -r '.Role.Arn')
-          export TASK_EXECUTION_ROLE_ARN=$(aws iam get-role --role-name ${{ env.APP }}-${{ env.DEPROY_ENV }}-ecs-task-execution-role | jq -r '.Role.Arn')
-          export SECRETS_MANAGER_ARN=$(aws secretsmanager list-secrets --filter Key=name,Values=${{ env.APP }}-${{ env.DEPLOY_TARGET }} | jq -r '.SecretList[0].ARN')
           echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
-          envsubst < task_definitions/backend_api.json >> $GITHUB_ENV
+          ./task_definitions/build.sh ${{ APP_NAME }} ${{ DEPROY_ENV }} ${{ secrets.ECR_REGISTRY }} task_definitions/backend_api.json >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       - run: echo ${{ env.TASK_DEFINITION_BACKEND_API }}
