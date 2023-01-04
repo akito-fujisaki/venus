@@ -24,6 +24,6 @@ jobs:
       - name: Build task definition
         run: |
           echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
-          ./task_definitions/build.sh ${{ APP_NAME }} ${{ DEPROY_ENV }} ${{ secrets.ECR_REGISTRY }} task_definitions/backend_api.json >> $GITHUB_ENV
+          ./task_definitions/build.sh ${{ env.APP_NAME }} ${{ env.DEPROY_ENV }} ${{ secrets.ECR_REGISTRY }} task_definitions/backend_api.json >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       - run: echo ${{ env.TASK_DEFINITION_BACKEND_API }}
