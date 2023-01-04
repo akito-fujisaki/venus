@@ -1,5 +1,9 @@
-name: Main
-on: [push]
+name: Build and push image
+on:
+  workflow_run:
+    workflows: [Lint and test]
+    types: [completed]
+    branches: [main]
 permissions:
   contents: read
 env:
