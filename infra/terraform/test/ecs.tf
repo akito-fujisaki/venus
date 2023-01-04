@@ -15,14 +15,14 @@ resource "aws_ecs_cluster_capacity_providers" "main" {
 resource "aws_ecs_service" "backend_api" {
   name             = "backend-api"
   cluster          = aws_ecs_cluster.main.id
-  task_definition  = aws_ecs_task_definition.dummy.arn
+  task_definition  = aws_ecs_task_definition.dummy_backend_api.arn
   launch_type      = "FARGATE"
   propagate_tags   = "SERVICE"
   platform_version = "LATEST"
 
   load_balancer {
     target_group_arn = aws_lb_target_group.backend.arn
-    container_name   = "backend-api"
+    container_name   = "api"
     container_port   = 3000
   }
 
@@ -53,8 +53,8 @@ resource "aws_ecs_service" "backend_api" {
   })
 }
 
-resource "aws_ecs_task_definition" "dummy" {
-  family                   = "${local.product}-${local.env}-dummy"
+resource "aws_ecs_task_definition" "dummy_backend_api" {
+  family                   = "${local.product}-${local.env}-backend-api-dummy"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -63,7 +63,7 @@ resource "aws_ecs_task_definition" "dummy" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   container_definitions = jsonencode([
     {
-      name  = "backend-api"
+      name  = "api"
       image = "alpine"
       portMappings = [
         {
