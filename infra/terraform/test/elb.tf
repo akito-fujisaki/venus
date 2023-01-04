@@ -1,16 +1,9 @@
-data "aws_subnets" "private" {
-  filter {
-    name   = "tag:Name"
-    values = ["${local.product}-${local.env}-subnet-public-*"]
-  }
-}
-
 resource "aws_lb" "main" {
   name               = "${local.product}-${local.env}-elb-main"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.elb.id]
-  subnets            = data.aws_subnets.private.ids
+  subnets            = data.aws_subnets.public.ids
   tags = merge(local.default_tags, {
     Name = "${local.product}-${local.env}-elb-main"
   })
