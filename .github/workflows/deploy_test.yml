@@ -27,9 +27,7 @@ jobs:
           export TASK_ROLE_ARN=$(aws iam get-role --role-name ${{ env.APP }}-${{ env.DEPROY_ENV }}-ecs-task-role | jq -r '.Role.Arn')
           export TASK_EXECUTION_ROLE_ARN=$(aws iam get-role --role-name ${{ env.APP }}-${{ env.DEPROY_ENV }}-ecs-task-execution-role | jq -r '.Role.Arn')
           export SECRETS_MANAGER_ARN=$(aws secretsmanager list-secrets --filter Key=name,Values=${{ env.APP }}-${{ env.DEPLOY_TARGET }} | jq -r '.SecretList[0].ARN')
-          echo $IMAGE_URI
-          echo $TASK_ROLE_ARN
-          echo $TASK_EXECUTION_ROLE_ARN
-          echo $SECRETS_MANAGER_ARN
-          echo "TASK_DEFINITION_BACKEND_API=$(envsubst < task_definitions/backend_api.json)" >> $GITHUB_ENV
+          echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
+          envsubst < task_definitions/backend_api.json
+          echo "EOF" >> $GITHUB_ENV
       - run: echo ${{ env.TASK_DEFINITION_BACKEND_API }}
