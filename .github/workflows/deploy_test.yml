@@ -25,7 +25,7 @@ jobs:
         run: |
           echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
           echo $(infra/cmd/build_task_definition.sh \
-                 backend_api
+                 backend_api \
                  ${{ env.DEPROY_ENV }} \
                  ${{ env.APP_NAME }} \
                  ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }}) >> $GITHUB_ENV
