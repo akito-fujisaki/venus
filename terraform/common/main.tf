@@ -1,15 +1,15 @@
-resource "aws_ecr_repository" "main" {
-  name                 = "${local.product}-main"
+resource "aws_ecr_repository" "backend" {
+  name                 = "${local.product}-backend"
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-main"
+    Name = "${local.product}-backend"
   })
 }
 
-resource "aws_ecr_lifecycle_policy" "main" {
-  repository = aws_ecr_repository.main.name
+resource "aws_ecr_lifecycle_policy" "backend" {
+  repository = aws_ecr_repository.backend.name
 
   policy = jsonencode({
     rules : [

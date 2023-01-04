@@ -8,7 +8,7 @@ permissions:
   contents: read
 env:
   AWS_REGION: ap-northeast-1
-  ECR_REPOSITORY: venus-main
+  ECR_REPOSITORY_BACKEND: venus-backend
 jobs:
   build-push-image:
     runs-on: ubuntu-latest
@@ -20,12 +20,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-      - uses: docker/login-action@v1
+      - uses: docker/login-action@v2
         with:
           registry: ${{ secrets.ECR_REGISTRY }}
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Restore docker layer cache
         uses: actions/cache@v3
         with:
@@ -35,11 +35,11 @@ jobs:
             ${{ github.ref }}
             refs/heads/main
       - name: Build image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
-          tags: ${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          tags: ${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_BACKEND }}:${{ github.sha }}
           context: ./backend
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
