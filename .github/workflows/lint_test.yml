@@ -1,8 +1,5 @@
 name: Lint and test
-on:
-  push:
-    tags-ignore:
-      - test**
+on: [push]
 jobs:
   infra-lint:
     runs-on: ubuntu-latest
