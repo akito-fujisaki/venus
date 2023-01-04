@@ -17,7 +17,10 @@ jobs:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #     aws-region: ${{ env.AWS_REGION }}
-      - run: echo ${{ IMAGE_URI }}
+      - name: Image URI
+        id: image-uri
+        run: echo "::set-output name=image-uri::${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
+      - run: echo ${{ steps.image-uri.outputs.image-uri }}
       # - name: Build task definition for backend api
       #   id: build_task_definition_backend_api
       #   run: bash ./task_definitions/build.sh
