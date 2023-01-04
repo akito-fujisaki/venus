@@ -7,7 +7,7 @@ env:
   ECR_REPOSITORY: venus-main
   IMAGE_URI: ${{ secrets.ECR_REGISTRY }}/venus-main:${{ github.sha }}
 jobs:
-  deploy:
+  build-push-image:
     runs-on: ubuntu-latest
     steps:
       # - uses: actions/checkout@v3
@@ -17,10 +17,9 @@ jobs:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #     aws-region: ${{ env.AWS_REGION }}
-      - name: Image URI
-        id: image-uri
-        run: echo "::set-output name=image-uri::${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"
-      - run: echo ${{ steps.image-uri.outputs.image-uri }}
+      - name: Set IMAGE_URI
+        run: echo "IMAGE_URI=${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_ENV
+      - run: echo ${{ env.IMAGE_URI }}
       # - name: Build task definition for backend api
       #   id: build_task_definition_backend_api
       #   run: bash ./task_definitions/build.sh
