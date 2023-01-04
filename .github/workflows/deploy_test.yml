@@ -1,0 +1,31 @@
+name: Deploy test to ECS
+on: [push]
+  # push:
+  #   branches: [main]
+  #   tags: [test**]
+permissions:
+  contents: read
+env:
+  APP: venus
+  DEPROY_ENV: test
+  AWS_REGION: ap-northeast-1
+  ECR_REPOSITORY_BACKEND: venus-backend
+jobs:
+  build-push-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Build task definition
+        run: |
+          export IMAGE_URI=${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_BACKEND }}:${{ github.sha }}
+          export TASK_ROLE_ARN=$(aws iam get-role --role-name ${{ env.APP }}-${{ env.DEPROY_ENV }}-ecs-task-role | jq -r '.Role.Arn')
+          export TASK_EXECUTION_ROLE_ARN=$(aws iam get-role --role-name ${{ env.APP }}-${{ env.DEPROY_ENV }}-ecs-task-execution-role | jq -r '.Role.Arn')
+          export SECRETS_MANAGER_ARN=$(aws secretsmanager list-secrets --filter Key=name,Values=${SERVICE_NAME}-${DEPLOY_TARGET} | jq -r '.SecretList[0].ARN')
+          echo "TASK_DEFINITION_BACKEND_API=$(envsubst < task_definitions/backend_api.json)" >> $GITHUB_ENV
+      - run: echo ${{ env.TASK_DEFINITION_BACKEND_API }}
