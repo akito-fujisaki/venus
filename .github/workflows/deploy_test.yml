@@ -13,6 +13,8 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      TASK_DEFINITION_BACKEND_API_PATH: infra/tmp/task_definition_backend_api.json
     steps:
       - uses: actions/checkout@v3
       - name: Configure AWS credentials
@@ -23,17 +25,24 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Build task definition
         run: |
-          echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
-          echo $(infra/cmd/build_task_definition.sh \
-                 backend_api \
-                 ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
-                 ${{ env.APP_NAME }} \
-                 ${{ env.DEPROY_ENV }}) >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          infra/cmd/build_task_definition.sh \
+            backend_api \
+            ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
+            ${{ env.APP_NAME }} \
+            ${{ env.DEPROY_ENV }} > ${{ env.TASK_DEFINITION_BACKEND_API_PATH }}
+      # - name: Build task definition
+      #   run: |
+      #     echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
+      #     echo $(infra/cmd/build_task_definition.sh \
+      #            backend_api \
+      #            ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
+      #            ${{ env.APP_NAME }} \
+      #            ${{ env.DEPROY_ENV }}) >> $GITHUB_ENV
+      #     echo "EOF" >> $GITHUB_ENV
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ env.TASK_DEFINITION_BACKEND_API }}
+          task-definition: ${{ env.TASK_DEFINITION_BACKEND_API_PATH }}
           cluster: ${{ env.APP_NAME }}-${{ env.DEPROY_ENV }}
           service: ${{ env.APP_NAME }}-${{ env.DEPROY_ENV }}-backend-api
           wait-for-service-stability: true
