@@ -1,6 +1,7 @@
 name: Lint and test
 on:
   push:
+    branches: [**]
     tags-ignore: [test**]
 jobs:
   infra-lint:
