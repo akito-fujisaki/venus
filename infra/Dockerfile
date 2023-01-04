@@ -2,10 +2,8 @@ FROM debian:bullseye-slim
 
 WORKDIR /tmp
 
-# AWS CLIv2: https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/getting-started-install.html
-# Terrafrom: https://developer.hashicorp.com/terraform/downloads
-ENV AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" \
-    TERRAFORM_URL="https://releases.hashicorp.com/terraform/1.3.6/terraform_1.3.6_linux_arm64.zip"
+ARG AWS_CLI_URL
+ARG TERRAFORM_URL
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

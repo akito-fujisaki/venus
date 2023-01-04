@@ -2,7 +2,13 @@ version: "3"
 
 services:
   infra:
-    build: ./infra
+    build:
+      context: ./infra
+      # AWS CLIv2: https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/getting-started-install.html
+      # Terrafrom: https://developer.hashicorp.com/terraform/downloads
+      # args:
+        - AWS_CLI_URL=${AWS_CLI_URL:-https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip}
+        - TERRAFORM_URL=${TERRAFORM_URL:-https://releases.hashicorp.com/terraform/1.3.6/terraform_1.3.6_linux_arm64.zip}
     image: venus_infra
     volumes:
       - ./infra:/infra
