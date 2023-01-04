@@ -36,14 +36,14 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/venus-test",
+          "awslogs-group": "/ecs/${APP_NAME}-${DEPROY_ENV}",
           "awslogs-region": "ap-northeast-1",
           "awslogs-stream-prefix": "backend/api"
         }
       }
     }
   ],
-  "family": "venus-test-backend-api-tmp",
+  "family": "${APP_NAME}-${DEPROY_ENV}-backend-api",
   "taskRoleArn": "$TASK_ROLE_ARN",
   "executionRoleArn": "$TASK_EXECUTION_ROLE_ARN",
   "networkMode": "awsvpc",

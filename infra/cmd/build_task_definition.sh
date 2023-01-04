@@ -3,9 +3,9 @@
 set -eu
 
 TASK_DEFINITION=$1
-APP_NAME=$2
-DEPROY_ENV=$3
 export IMAGE_URI=$4
+export APP_NAME=$2
+export DEPROY_ENV=$3
 
 export TASK_ROLE_ARN=$(aws iam get-role --role-name ${APP_NAME}-${DEPROY_ENV}-ecs-task-role | jq -r '.Role.Arn')
 export TASK_EXECUTION_ROLE_ARN=$(aws iam get-role --role-name ${APP_NAME}-${DEPROY_ENV}-ecs-task-role | jq -r '.Role.Arn')
