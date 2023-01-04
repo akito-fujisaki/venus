@@ -24,10 +24,10 @@ jobs:
       - name: Build task definition
         run: |
           echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
-          echo $(infra/cmd/build_task_definition.sh \
-                 ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
-                 ${{ env.APP_NAME }} \
-                 ${{ env.DEPROY_ENV }} \
-                 backend_api) >> $GITHUB_ENV
+          infra/cmd/build_task_definition.sh \
+            ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
+            ${{ env.APP_NAME }} \
+            ${{ env.DEPROY_ENV }} \
+            backend_api >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       - run: echo ${{ env.TASK_DEFINITION_BACKEND_API }}
