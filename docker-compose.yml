@@ -1,11 +1,11 @@
 version: "3"
 
 services:
-  terraform:
-    build: ./terraform
-    image: venus_terraform
+  infra:
+    build: ./infra
+    image: venus_infra
     volumes:
-      - ./terraform:/terraform
+      - ./infra:/infra
       - ~/.aws:/root/.aws:ro
     environment:
       - AWS_PROFILE=venus_terraform
