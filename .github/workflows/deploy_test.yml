@@ -21,9 +21,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-      - name: Build task definition
-        run: |
-          echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
-          infra/build_task_definition.sh ${{ env.APP_NAME }} ${{ env.DEPROY_ENV }} ${{ secrets.ECR_REGISTRY }} infra/task_definitions/backend_api.json >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-      - run: echo ${{ env.TASK_DEFINITION_BACKEND_API }}
+      - run: infra/cmd/build_task_definition.sh ${{ env.APP_NAME }} ${{ env.DEPROY_ENV }} ${{ secrets.ECR_REGISTRY }} infra/task_definitions/backend_api.json
+      # - name: Build task definition
+      #   run: |
+      #     echo "TASK_DEFINITION_BACKEND_API<<EOF" >> $GITHUB_ENV
+      #     infra/cmd/build_task_definition.sh ${{ env.APP_NAME }} ${{ env.DEPROY_ENV }} ${{ secrets.ECR_REGISTRY }} infra/task_definitions/backend_api.json >> $GITHUB_ENV
+      #     echo "EOF" >> $GITHUB_ENV
+      # - run: echo ${{ env.TASK_DEFINITION_BACKEND_API }}
