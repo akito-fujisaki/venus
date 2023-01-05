@@ -37,7 +37,7 @@ jobs:
       - name: Move cache
         run: rm -rf /tmp/infra/.buildx-cache && mv /tmp/infra/.buildx-cache-new /tmp/infra/.buildx-cache
       - run: docker compose run --rm infra bash -c "cd terraform/common && terraform fmt -diff=true -check=true"
-      - run: docker compose run --rm infra bash -c "cd terraform/test && terraform fmt -diff=true -check=true"
+      - run: docker compose run --rm infra bash -c "cd terraform/sandbox && terraform fmt -diff=true -check=true"
   backend-lint-test:
     runs-on: ubuntu-latest
     steps:
