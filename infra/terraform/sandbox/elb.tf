@@ -1,16 +1,19 @@
-resource "aws_lb" "main" {
-  name               = "${local.app}-${local.env}-elb-main"
+resource "aws_lb" "backend" {
+  name               = "${local.app}-${local.env}-backend"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.elb.id]
   subnets            = data.aws_subnets.public.ids
+
+  depends_on = [aws_security_group.elb]
+
   tags = merge(local.default_tags, {
-    Name = "${local.app}-${local.env}-elb-main"
+    Name = "${local.app}-${local.env}-backend"
   })
 }
 
 resource "aws_lb_target_group" "backend_api" {
-  name                          = "${local.app}-${local.env}-tg-backend-api"
+  name                          = "${local.app}-${local.env}-backend-api"
   port                          = 3000
   protocol                      = "HTTP"
   vpc_id                        = aws_vpc.main.id
@@ -28,12 +31,12 @@ resource "aws_lb_target_group" "backend_api" {
   }
 
   tags = merge(local.default_tags, {
-    Name = "${local.app}-${local.env}-tg-backend-api"
+    Name = "${local.app}-${local.env}-backend-api"
   })
 }
 
 resource "aws_lb_listener" "backend_api_http" {
-  load_balancer_arn = aws_lb.main.arn
+  load_balancer_arn = aws_lb.backend.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -43,6 +46,6 @@ resource "aws_lb_listener" "backend_api_http" {
   }
 
   tags = merge(local.default_tags, {
-    Name = "${local.app}-${local.env}-lb-listener-backend-api-http"
+    Name = "${local.app}-${local.env}-backend-api-http"
   })
 }

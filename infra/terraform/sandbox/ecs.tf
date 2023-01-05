@@ -19,6 +19,7 @@ resource "aws_ecs_service" "backend_api" {
   launch_type      = "FARGATE"
   propagate_tags   = "SERVICE"
   platform_version = "LATEST"
+  desired_count    = 0
 
   load_balancer {
     target_group_arn = aws_lb_target_group.backend_api.arn
@@ -48,13 +49,18 @@ resource "aws_ecs_service" "backend_api" {
     ]
   }
 
-  depends_on = [aws_lb.main]
+  # 依存関係を明示しておかないと作成/削除時にスタックする場合がある
+  depends_on = [
+    aws_lb_listener.backend_api_http,
+    aws_security_group.backend
+  ]
 
   tags = merge(local.default_tags, {
     Name = "${local.app}-${local.env}-backend-api"
   })
 }
 
+# ECSサービスの作成だけはterraformで管理したいため、作成時に必須のタスク定義はダミーで用意しておく
 resource "aws_ecs_task_definition" "dummy_backend_api" {
   family                   = "${local.app}-${local.env}-backend-api-dummy"
   network_mode             = "awsvpc"
