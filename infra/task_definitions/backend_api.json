@@ -42,7 +42,7 @@
         "options": {
           "awslogs-group": "/ecs/${APP_NAME}-${DEPLOY_ENV}-backend",
           "awslogs-region": "ap-northeast-1",
-          "awslogs-stream-prefix": "${APP_NAME}-${DEPLOY_ENV}-backend"
+          "awslogs-stream-prefix": "backend"
         }
       }
     }
