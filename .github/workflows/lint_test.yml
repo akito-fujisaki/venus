@@ -2,7 +2,7 @@ name: Lint and test
 on:
   push:
     branches: ['**']
-    tags-ignore: ['test**']
+    tags-ignore: ['sandbox**']
 jobs:
   infra-lint:
     runs-on: ubuntu-latest

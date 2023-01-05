@@ -1,10 +1,10 @@
 resource "aws_ecr_repository" "backend" {
-  name                 = "${local.product}-backend"
+  name                 = "${local.app}-backend"
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-backend"
+    Name = "${local.app}-backend"
   })
 }
 

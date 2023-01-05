@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "${local.product}-${local.env}-ecs-task-execution-role"
+  name = "${local.app}-${local.env}-ecs-task-execution-role"
   assume_role_policy = jsonencode(
     {
       Version = "2012-10-17"
@@ -16,7 +16,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-ecs-task-execution-role"
+    Name = "${local.app}-${local.env}-ecs-task-execution-role"
   })
 }
 
@@ -25,8 +25,8 @@ data "aws_iam_policy" "amazon_ecs_task_execution_role_policy" {
 }
 
 resource "aws_iam_policy" "secrets_manager_read" {
-  description = "${local.product}-${local.env}-secrets-manager-read"
-  name        = "${local.product}-${local.env}-secrets-manager-read"
+  description = "${local.app}-${local.env}-secrets-manager-read"
+  name        = "${local.app}-${local.env}-secrets-manager-read"
   path        = "/"
   policy = jsonencode({
     Version = "2012-10-17"
@@ -41,7 +41,7 @@ resource "aws_iam_policy" "secrets_manager_read" {
     ]
   })
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-secrets-manager-read"
+    Name = "${local.app}-${local.env}-secrets-manager-read"
   })
 }
 
@@ -56,7 +56,7 @@ resource "aws_iam_role_policy_attachment" "secrets_manager_read" {
 }
 
 resource "aws_iam_role" "ecs_task_role" {
-  name = "${local.product}-${local.env}-ecs-task-role"
+  name = "${local.app}-${local.env}-ecs-task-role"
   assume_role_policy = jsonencode(
     {
       Version = "2012-10-17"
@@ -73,6 +73,6 @@ resource "aws_iam_role" "ecs_task_role" {
   })
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-ecs-task-role"
+    Name = "${local.app}-${local.env}-ecs-task-role"
   })
 }
