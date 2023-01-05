@@ -25,8 +25,8 @@ if [[ ${DEPLOY_ENV} == "sandbox" ]]; then
 fi
 
 echo "Tag: ${DEPLOY_TAG}"
-read -n2 -p "Push tag? (Y/n): " confirm
-[[ $confirm == "Y" ]] || exit 1; 
+read -p "Push tag? (Y/n): " confirm
+[[ $confirm == "Y" ]] || exit 1;
 
 git tag -a "${DEPLOY_TAG}" -m "Deploy to sandbox with ${DEPLOY_TAG}"
 git push "${REMOTE_NAME}" "${DEPLOY_TAG}"
