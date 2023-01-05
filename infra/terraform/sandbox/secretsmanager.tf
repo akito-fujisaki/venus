@@ -9,7 +9,7 @@ resource "aws_secretsmanager_secret" "main" {
 resource "aws_secretsmanager_secret_version" "main" {
   secret_id = aws_secretsmanager_secret.main.id
   secret_string = jsonencode({
-    DATABASE_URL    = "mysql2://root:${random_password.database_root_user.result}@${aws_db_instance.main.endpoint}",
+    DATABASE_URL    = "mysql2://root:${random_password.database_root_user.result}@${aws_db_instance.main.endpoint}/venus",
     SECRET_KEY_BASE = random_id.rails_secret_key_base.hex
   })
 }

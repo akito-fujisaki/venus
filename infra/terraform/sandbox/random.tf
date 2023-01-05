@@ -4,7 +4,7 @@ resource "random_id" "main" {
 }
 
 resource "random_id" "rails_secret_key_base" {
-  byte_length = 128
+  byte_length = 64
 }
 
 resource "random_password" "database_root_user" {
