@@ -1,4 +1,4 @@
-name: Deploy test to ECS
+name: Deploy sandbox to ECS
 on:
   push:
     tags: ['sandbox**']

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -eu
+
+# 現状はsandboxのみを対象とする
+DEPLOY_ENV=$1
+[[ ${DEPLOY_ENV} == "sandbox" ]] || exit 1;
+
+git diff --quiet HEAD || exit 1;
+
+MAIN_BRANCH=main
+[[ ${MAIN_BRANCH} == "$(git rev-parse --abbrev-ref HEAD)" ]] || exit 1;
+
+REMOTE_NAME=origin
+[[ ${REMOTE_NAME} == "$(git remote)" ]] || exit 1;
+
+git fetch ${REMOTE_NAME}
+
+GIT_DIFF=$(git diff ${REMOTE_NAME}/${MAIN_BRANCH})
+[[ -z ${GIT_DIFF} ]] || exit 1;
+
+if [[ ${DEPLOY_ENV} == "sandbox" ]]; then
+  DEPLOY_TAG_PREFIX="sandbox"
+  DEPLOY_TAG=${DEPLOY_TAG_PREFIX}-$(date "+%Y%m%d%H%M%S")
+fi
+
+echo "Tag: ${DEPLOY_TAG}"
+read -p "Push tag? (Y/n): " confirm
+[[ $confirm == "Y" ]] || exit 1;
+
+git tag -a "${DEPLOY_TAG}" -m "Deploy to sandbox with ${DEPLOY_TAG}"
+git push "${REMOTE_NAME}" "${DEPLOY_TAG}"
+
+echo "Successfully pushed tags."
+echo "Please check the GithubActions."
