@@ -1,7 +1,7 @@
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-vpc"
+    Name = "${local.app}-${local.env}-vpc"
   })
 }
 
@@ -9,7 +9,7 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-igw"
+    Name = "${local.app}-${local.env}-igw"
   })
 }
 
@@ -19,7 +19,7 @@ resource "aws_subnet" "public_a" {
   availability_zone = "ap-northeast-1a"
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-subnet-public-a"
+    Name = "${local.app}-${local.env}-subnet-public-a"
   })
 }
 
@@ -29,7 +29,7 @@ resource "aws_subnet" "public_c" {
   availability_zone = "ap-northeast-1c"
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-subnet-public-c"
+    Name = "${local.app}-${local.env}-subnet-public-c"
   })
 }
 
@@ -39,7 +39,7 @@ resource "aws_subnet" "private_a" {
   availability_zone = "ap-northeast-1a"
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-subnet-private-a"
+    Name = "${local.app}-${local.env}-subnet-private-a"
   })
 }
 
@@ -49,7 +49,7 @@ resource "aws_subnet" "private_c" {
   availability_zone = "ap-northeast-1c"
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-subnet-private-c"
+    Name = "${local.app}-${local.env}-subnet-private-c"
   })
 }
 
@@ -57,7 +57,7 @@ resource "aws_eip" "ngw_a" {
   vpc = true
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-eip-ngw-a"
+    Name = "${local.app}-${local.env}-eip-ngw-a"
   })
 }
 
@@ -67,7 +67,7 @@ resource "aws_nat_gateway" "ngw_a" {
   subnet_id     = aws_subnet.public_a.id
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-ngw-a"
+    Name = "${local.app}-${local.env}-ngw-a"
   })
 
   depends_on = [aws_internet_gateway.main]
@@ -77,7 +77,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-rt-public"
+    Name = "${local.app}-${local.env}-rt-public"
   })
 }
 
@@ -101,7 +101,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-rt-private"
+    Name = "${local.app}-${local.env}-rt-private"
   })
 }
 

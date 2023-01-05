@@ -5,7 +5,7 @@
 terraformを使用してインフラの構築を行う。
 なお、importコマンドを使用してtfstateを確認しながら作業をしたいため、tfstateはローカルで管理している。
 
-test環境は必要なときに作成し、タグをつけてpushすることでGithubActionsでデプロイできるようにすることを想定している。
+sandbox環境は必要なときに作成し、タグをつけてpushすることでGithubActionsでデプロイできるようにすることを想定している。
 
 ## 作業方法
 
@@ -18,7 +18,7 @@ $ docker-compose run --rm infra bash
 コンテナ内でディレクトリへ移動し、各種terraformコマンドを実行すること。
 
 ```
-$ cd terraform/test
+$ cd terraform/sandbox
 
 $ terraform init
 $ terraform fmt

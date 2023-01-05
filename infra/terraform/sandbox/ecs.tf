@@ -1,27 +1,27 @@
-resource "aws_ecs_cluster" "main" {
-  name = "${local.product}-${local.env}"
+resource "aws_ecs_cluster" "backend" {
+  name = "${local.app}-${local.env}-backend"
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}"
+    Name = "${local.app}-${local.env}-backend"
   })
 }
 
-resource "aws_ecs_cluster_capacity_providers" "main" {
-  cluster_name = aws_ecs_cluster.main.name
+resource "aws_ecs_cluster_capacity_providers" "backend" {
+  cluster_name = aws_ecs_cluster.backend.name
 
   capacity_providers = ["FARGATE"]
 }
 
 resource "aws_ecs_service" "backend_api" {
-  name             = "backend-api"
-  cluster          = aws_ecs_cluster.main.id
+  name             = "api"
+  cluster          = aws_ecs_cluster.backend.id
   task_definition  = aws_ecs_task_definition.dummy_backend_api.arn
   launch_type      = "FARGATE"
   propagate_tags   = "SERVICE"
   platform_version = "LATEST"
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.backend.arn
+    target_group_arn = aws_lb_target_group.backend_api.arn
     container_name   = "api"
     container_port   = 3000
   }
@@ -48,13 +48,15 @@ resource "aws_ecs_service" "backend_api" {
     ]
   }
 
+  depends_on = [aws_lb.main]
+
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-backend-api"
+    Name = "${local.app}-${local.env}-backend-api"
   })
 }
 
 resource "aws_ecs_task_definition" "dummy_backend_api" {
-  family                   = "${local.product}-${local.env}-backend-api-dummy"
+  family                   = "${local.app}-${local.env}-backend-api-dummy"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -74,7 +76,7 @@ resource "aws_ecs_task_definition" "dummy_backend_api" {
       logConfiguration = {
         logDriver = "awslogs",
         options = {
-          awslogs-group         = aws_cloudwatch_log_group.main.name,
+          awslogs-group         = aws_cloudwatch_log_group.backend.name,
           awslogs-region        = "ap-northeast-1",
           awslogs-stream-prefix = "dummy"
         }

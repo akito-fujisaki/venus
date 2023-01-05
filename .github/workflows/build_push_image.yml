@@ -29,11 +29,11 @@ jobs:
       - name: Restore docker layer cache
         uses: actions/cache@v3
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ github.ref }}-${{ github.sha }}
+          path: /tmp/backend/.buildx-cache
+          key: backend-${{ github.ref }}-${{ github.sha }}
           restore-keys: |
-            ${{ github.ref }}
-            refs/heads/main
+            backend-${{ github.ref }}
+            backend-refs/heads/main
       - name: Build image
         uses: docker/build-push-action@v3
         with:
@@ -41,11 +41,11 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           tags: ${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY_BACKEND }}:${{ github.sha }}
           context: ./backend
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          cache-from: type=local,src=/tmp/backend/.buildx-cache
+          cache-to: type=local,dest=/tmp/backend/.buildx-cache-new
       # https://github.com/docker/build-push-action/issues/252
       # https://github.com/moby/buildkit/issues/1896
       - name: Move cache
         run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          rm -rf /tmp/backend/.buildx-cache
+          mv /tmp/backend/.buildx-cache-new /tmp/backend/.buildx-cache

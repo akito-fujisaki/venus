@@ -1,16 +1,16 @@
 resource "aws_lb" "main" {
-  name               = "${local.product}-${local.env}-elb-main"
+  name               = "${local.app}-${local.env}-elb-main"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.elb.id]
   subnets            = data.aws_subnets.public.ids
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-elb-main"
+    Name = "${local.app}-${local.env}-elb-main"
   })
 }
 
-resource "aws_lb_target_group" "backend" {
-  name                          = "${local.product}-${local.env}-tg-backend"
+resource "aws_lb_target_group" "backend_api" {
+  name                          = "${local.app}-${local.env}-tg-backend-api"
   port                          = 3000
   protocol                      = "HTTP"
   vpc_id                        = aws_vpc.main.id
@@ -28,21 +28,21 @@ resource "aws_lb_target_group" "backend" {
   }
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-tg-backend"
+    Name = "${local.app}-${local.env}-tg-backend-api"
   })
 }
 
-resource "aws_lb_listener" "backend_http" {
+resource "aws_lb_listener" "backend_api_http" {
   load_balancer_arn = aws_lb.main.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.backend.arn
+    target_group_arn = aws_lb_target_group.backend_api.arn
   }
 
   tags = merge(local.default_tags, {
-    Name = "${local.product}-${local.env}-lb-listener-backend-http"
+    Name = "${local.app}-${local.env}-lb-listener-backend-api-http"
   })
 }
