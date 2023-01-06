@@ -1,0 +1,55 @@
+name: Deploy to ECS
+description: |
+  Deploy to ECS
+  See: https://github.com/aws-actions/amazon-ecs-deploy-task-definition
+inputs:
+  app-name:
+    description: Application name to deploy
+    required: true
+  app-env:
+    description: Application environment to deploy
+    required: true
+  image-uri:
+    description: Docker image uri
+    required: true
+  aws-region:
+    description: AWS region
+    required: false
+    default: ap-northeast-1
+runs:
+  using: "composite"
+  steps:
+    # TODO: Use OIDC
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.aws-region }}
+    - name: Build task definition for backend api
+      run: |
+        infra/cmd/build-task-definition \
+          backend_api \
+          ${{ inputs.image-uri }} \
+          ${{ inputs.app-name }} \
+          ${{ inputs.app-env }} > infra/tmp/task_definition_backend_api.json
+    - name: Build task definition for backend oneshot
+      run: |
+        infra/cmd/build-task-definition \
+          backend_oneshot \
+          ${{ inputs.image-uri }} \
+          ${{ inputs.app-name }} \
+          ${{ inputs.app-env }} > infra/tmp/task_definition_backend_oneshot.json
+    - name: Deploy service for backend api
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: infra/tmp/task_definition_backend_api.json
+        cluster: ${{ inputs.app-name }}-${{ inputs.app-env }}-backend
+        service: api
+        wait-for-service-stability: true
+    - name: Register task definition for backend oneshot
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: infra/tmp/task_definition_backend_oneshot.json
+        cluster: ${{ inputs.app-name }}-${{ inputs.app-env }}-backend
+        wait-for-service-stability: true

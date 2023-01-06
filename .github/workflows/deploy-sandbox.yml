@@ -1,0 +1,17 @@
+name: Deploy sandbox to ECS
+on:
+  push:
+    tags: ['sandbox**']
+permissions:
+  contents: read
+jobs:
+  deploy-backend-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deproy backend
+        uses: ./.github/deploy
+        with:
+          app-name: venus
+          app-env: sandbox
+          image-uri: ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }}
