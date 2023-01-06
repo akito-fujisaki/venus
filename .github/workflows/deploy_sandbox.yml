@@ -4,60 +4,14 @@ on:
     tags: ['sandbox**']
 permissions:
   contents: read
-env:
-  APP_NAME: venus
-  DEPLOY_ENV: sandbox
-  AWS_REGION: ap-northeast-1
-  ECR_REPOSITORY_BACKEND: venus-backend
 jobs:
   deploy-backend-api:
     runs-on: ubuntu-latest
-    env:
-      TASK_DEFINITION_PATH: infra/tmp/task_definition_backend_api.json
     steps:
       - uses: actions/checkout@v3
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Deproy backend
+        uses: ./.github/deploy
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Build task definition
-        run: |
-          infra/cmd/build-task-definition \
-            backend_api \
-            ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
-            ${{ env.APP_NAME }} \
-            ${{ env.DEPLOY_ENV }} > ${{ env.TASK_DEFINITION_PATH }}
-      - name: Deploy service for backend api
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ env.TASK_DEFINITION_PATH }}
-          cluster: ${{ env.APP_NAME }}-${{ env.DEPLOY_ENV }}-backend
-          service: api
-          wait-for-service-stability: true
-  register-backend-oneshot:
-    runs-on: ubuntu-latest
-    env:
-      TASK_DEFINITION_PATH: infra/tmp/task_definition_backend_oneshot.json
-    steps:
-      - uses: actions/checkout@v3
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Build task definition
-        run: |
-          infra/cmd/build-task-definition \
-            backend_oneshot \
-            ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
-            ${{ env.APP_NAME }} \
-            ${{ env.DEPLOY_ENV }} > ${{ env.TASK_DEFINITION_PATH }}
-      - name: Register task definition for backend oneshot
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ env.TASK_DEFINITION_PATH }}
-          cluster: ${{ env.APP_NAME }}-${{ env.DEPLOY_ENV }}-backend
-          wait-for-service-stability: true
+          app-name: venus
+          app-env: sandbox
+          image-uri: ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }}
