@@ -20,41 +20,14 @@ jobs:
             AWS_CLI_URL=https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
             AWS_CLI_SSM_URL=https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb
             TERRAFORM_URL=https://releases.hashicorp.com/terraform/1.3.6/terraform_1.3.6_linux_amd64.zip
-      # - name: Set up Docker Buildx
-      #   id: buildx
-      #   uses: docker/setup-buildx-action@v2
-      # - name: Restore docker layer cache
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: /tmp/infra/.buildx-cache
-      #     key: infra-${{ github.ref }}-${{ github.sha }}
-      #     restore-keys: |
-      #       infra-${{ github.ref }}
-      #       infra-refs/heads/main
-      # - name: Build image
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     push: false
-      #     builder: ${{ steps.buildx.outputs.name }}
-      #     tags: venus_infra:latest
-      #     load: true
-      #     context: ./infra
-      #     build-args: |
-      #       AWS_CLI_URL=https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-      #       AWS_CLI_SSM_URL=https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb
-      #       TERRAFORM_URL=https://releases.hashicorp.com/terraform/1.3.6/terraform_1.3.6_linux_amd64.zip
-      #     cache-from: type=local,src=/tmp/infra/.buildx-cache
-      #     cache-to: type=local,dest=/tmp/infra/.buildx-cache-new
-      # # https://github.com/docker/build-push-action/issues/252
-      # # https://github.com/moby/buildkit/issues/1896
-      # - name: Move cache
-      #   run: rm -rf /tmp/infra/.buildx-cache && mv /tmp/infra/.buildx-cache-new /tmp/infra/.buildx-cache
       - run: docker compose run --rm infra bash -c "cd terraform/common && terraform fmt -diff=true -check=true"
       - run: docker compose run --rm infra bash -c "cd terraform/sandbox && terraform fmt -diff=true -check=true"
   backend-lint-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Up dependency container
+        run: docker compose up db -d
       - name: Build image
         uses: ./.github/actions/build-image
         with:
@@ -63,35 +36,6 @@ jobs:
           tags: venus_backend:latest
           load: true
           push: false
-      # - name: Set up Docker Buildx
-      #   id: buildx
-      #   uses: docker/setup-buildx-action@v2
-      # - name: Up dependency container
-      #   run: docker compose up db -d
-      # - name: Restore docker layer cache
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: /tmp/backend/.buildx-cache
-      #     key: backend-${{ github.ref }}-${{ github.sha }}
-      #     restore-keys: |
-      #       backend-${{ github.ref }}
-      #       backend-refs/heads/main
-      # - name: Build image
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     push: false
-      #     builder: ${{ steps.buildx.outputs.name }}
-      #     tags: venus_backend:latest
-      #     load: true
-      #     context: ./backend
-      #     cache-from: type=local,src=/tmp/backend/.buildx-cache
-      #     cache-to: type=local,dest=/tmp/backend/.buildx-cache-new
-      # # https://github.com/docker/build-push-action/issues/252
-      # # https://github.com/moby/buildkit/issues/1896
-      # - name: Move cache
-      #   run: |
-      #     rm -rf /tmp/backend/.buildx-cache
-      #     mv /tmp/backend/.buildx-cache-new /tmp/backend/.buildx-cache
       - name: Create test db
         run: docker compose run --rm --no-deps backend bash -c "rails db:create RAILS_ENV=test"
       - name: Run test
