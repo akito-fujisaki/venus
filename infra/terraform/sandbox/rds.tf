@@ -65,7 +65,7 @@ resource "aws_db_instance" "main" {
   storage_type                          = "gp2"
   username                              = "root"
   password                              = random_password.database_root_user.result
-  vpc_security_group_ids                = [aws_default_security_group.default.id]
+  vpc_security_group_ids                = [aws_security_group.rds.id]
 
   tags = merge(local.default_tags, {
     Name = "${local.app}-${local.env}"
