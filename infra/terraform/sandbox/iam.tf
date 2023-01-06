@@ -45,6 +45,38 @@ resource "aws_iam_policy" "secrets_manager_read" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "amazon_ecs_task_execution_role_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = data.aws_iam_policy.amazon_ecs_task_execution_role_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "secrets_manager_read" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.secrets_manager_read.arn
+}
+
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${local.app}-${local.env}-ecs-task-role"
+  assume_role_policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Sid    = ""
+          Effect = "Allow"
+          Principal = {
+            Service = "ecs-tasks.amazonaws.com"
+          }
+          Action = "sts:AssumeRole"
+        }
+      ]
+  })
+
+  tags = merge(local.default_tags, {
+    Name = "${local.app}-${local.env}-ecs-task-role"
+  })
+}
+
 # タスクに対してexecute-commandを使用できるようにする
 # https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/userguide/ecs-exec.html
 resource "aws_iam_policy" "ecs_exec_command" {
@@ -71,39 +103,7 @@ resource "aws_iam_policy" "ecs_exec_command" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "amazon_ecs_task_execution_role_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = data.aws_iam_policy.amazon_ecs_task_execution_role_policy.arn
-}
-
-resource "aws_iam_role_policy_attachment" "secrets_manager_read" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = aws_iam_policy.secrets_manager_read.arn
-}
-
 resource "aws_iam_role_policy_attachment" "ecs_exec_command" {
-  role       = aws_iam_role.ecs_task_execution_role.name
+  role       = aws_iam_role.ecs_task_role.name
   policy_arn = aws_iam_policy.ecs_exec_command.arn
-}
-
-resource "aws_iam_role" "ecs_task_role" {
-  name = "${local.app}-${local.env}-ecs-task-role"
-  assume_role_policy = jsonencode(
-    {
-      Version = "2012-10-17"
-      Statement = [
-        {
-          Sid    = ""
-          Effect = "Allow"
-          Principal = {
-            Service = "ecs-tasks.amazonaws.com"
-          }
-          Action = "sts:AssumeRole"
-        }
-      ]
-  })
-
-  tags = merge(local.default_tags, {
-    Name = "${local.app}-${local.env}-ecs-task-role"
-  })
 }
