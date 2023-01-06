@@ -12,6 +12,12 @@ inputs:
   image-uri:
     description: Docker image uri
     required: true
+  aws-access-key-id:
+    description: AWS Access Key Id
+    required: true
+  aws-secret-access-key:
+    description: AWS Secret Access Key
+    required: true
   aws-region:
     description: AWS region
     required: false
@@ -23,10 +29,11 @@ runs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
         aws-region: ${{ inputs.aws-region }}
     - name: Build task definition for backend api
+      shell: bash
       run: |
         infra/cmd/build-task-definition \
           backend_api \
@@ -34,6 +41,7 @@ runs:
           ${{ inputs.app-name }} \
           ${{ inputs.app-env }} > infra/tmp/task_definition_backend_api.json
     - name: Build task definition for backend oneshot
+      shell: bash
       run: |
         infra/cmd/build-task-definition \
           backend_oneshot \
