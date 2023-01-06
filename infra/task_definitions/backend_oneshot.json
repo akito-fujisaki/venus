@@ -1,0 +1,57 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "oneshot",
+      "image": "$IMAGE_URI",
+      "cpu": 0,
+      "portMappings": [],
+      "essential": true,
+      "entryPoint": [],
+      "command": [
+        "/bin/bash",
+        "-c",
+        "while :; do sleep 10; done"
+      ],
+      "environment": [
+        {
+          "name": "RAILS_ENV",
+          "value": "production"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "$SECRETS_MANAGER_ARN:DATABASE_URL::"
+        },
+        {
+          "name": "SECRET_KEY_BASE",
+          "valueFrom": "$SECRETS_MANAGER_ARN:SECRET_KEY_BASE::"
+        }
+      ],
+      "mountPoints": [],
+      "volumesFrom": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/${APP_NAME}-${DEPLOY_ENV}-backend",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "backend"
+        }
+      }
+    }
+  ],
+  "family": "${APP_NAME}-${DEPLOY_ENV}-backend-oneshot",
+  "taskRoleArn": "$TASK_ROLE_ARN",
+  "executionRoleArn": "$TASK_EXECUTION_ROLE_ARN",
+  "networkMode": "awsvpc",
+  "volumes": [],
+  "placementConstraints": [],
+  "runtimePlatform": {
+    "operatingSystemFamily": "LINUX"
+  },
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512"
+}
