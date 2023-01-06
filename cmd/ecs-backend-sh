@@ -1,0 +1,65 @@
+#!/bin/bash
+
+set -eu
+
+TARGET_ENV=$1
+[[ ${TARGET_ENV} == "sandbox" ]] || exit 1;
+
+CLUSTER_NAME="venus-${TARGET_ENV}-backend"
+
+SUBNETS=$(
+  aws ec2 describe-subnets --filter Name=tag:Name,Values="venus-${TARGET_ENV}-subnet-private*" | \
+    jq -r ".Subnets[].SubnetId" | tr "\n" "," | sed "s/,$//g"
+)
+SECURITY_GROUP=$(
+  aws ec2 describe-security-groups --filters Name=tag:Name,Values="venus-${TARGET_ENV}-sg-backend" | \
+    jq -r ".SecurityGroups[0].GroupId"
+)
+NETWORK_CONFIGURATION="awsvpcConfiguration={subnets=[${SUBNETS}],securityGroups=[${SECURITY_GROUP}],assignPublicIp=DISABLED}"
+
+TASK_DEFINITION=$(
+  aws ecs list-task-definitions --family-prefix "venus-${TARGET_ENV}-backend-oneshot" --sort DESC --max-items 1 | \
+    jq -r ".taskDefinitionArns[0]"
+)
+
+TASK_ARN=$(
+  aws ecs run-task \
+    --no-cli-pager \
+    --cluster ${CLUSTER_NAME} \
+    --task-definition ${TASK_DEFINITION} \
+    --network-configuration ${NETWORK_CONFIGURATION} \
+    --launch-type FARGATE \
+    --enable-execute-command | jq -r ".tasks[0].taskArn"
+)
+
+echo "TASK: ${TASK_ARN}"
+
+while :; do
+  sleep 5
+
+  STATUS=$(
+    aws ecs describe-tasks --cluster ${CLUSTER_NAME} --tasks ${TASK_ARN} | \
+      jq -r ".tasks[0].containers[0].managedAgents[0].lastStatus"
+  )
+  echo "STATUS: ${STATUS}"
+
+  if [[ "${STATUS}" == "RUNNING" ]]; then
+    break
+  elif [[ "${STATUS}" == "STOPPED" ]]; then
+    exit 1
+  fi
+done
+
+aws ecs execute-command \
+  --cluster ${CLUSTER_NAME} \
+  --task ${TASK_ARN} \
+  --container oneshot \
+  --interactive \
+  --command /bin/bash
+
+aws ecs stop-task \
+  --no-cli-pager \
+  --cluster ${CLUSTER_NAME} \
+  --task ${TASK_ARN} > /dev/null 2>&1
+
+echo "STOPPED TASK"
