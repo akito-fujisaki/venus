@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -eu
+
+APP_ENV=$1
+shift
+RAW_COMMNAD=("$@")
+RAW_COMMNAD_NUM=$#
+
+[[ ${APP_ENV} == "sandbox" ]] || exit 1;
+
+CLUSTER_NAME="venus-${APP_ENV}-backend"
+
+SUBNETS=$(
+  aws ec2 describe-subnets --filter Name=tag:Name,Values="venus-${APP_ENV}-subnet-private*" | \
+    jq -r ".Subnets[].SubnetId" | tr "\n" "," | sed "s/,$//g"
+)
+SECURITY_GROUP=$(
+  aws ec2 describe-security-groups --filters Name=tag:Name,Values="venus-${APP_ENV}-sg-backend" | \
+    jq -r ".SecurityGroups[0].GroupId"
+)
+NETWORK_CONFIGURATION="awsvpcConfiguration={subnets=[${SUBNETS}],securityGroups=[${SECURITY_GROUP}],assignPublicIp=DISABLED}"
+
+TASK_DEFINITION=$(
+  aws ecs list-task-definitions --family-prefix "venus-${APP_ENV}-backend-oneshot" --sort DESC --max-items 1 | \
+    jq -r ".taskDefinitionArns[0]"
+)
+
+COMMNAD=""
+for i in $(seq $RAW_COMMNAD_NUM); do
+  COMMNAD="${COMMNAD}${COMMNAD:+,}\"${RAW_COMMNAD[$i-1]}\""
+done
+CONTAINER_OVERRIDES=$(cat <<EOF
+{"containerOverrides":[{"name":"oneshot","command":[${COMMNAD}]}]}
+EOF
+)
+
+TASK_ARN=$(
+  aws ecs run-task \
+      --no-cli-pager \
+      --cluster ${CLUSTER_NAME} \
+      --task-definition ${TASK_DEFINITION} \
+      --network-configuration ${NETWORK_CONFIGURATION} \
+      --launch-type FARGATE \
+      --enable-execute-command \
+      --overrides "${CONTAINER_OVERRIDES}" \
+    | jq -r ".tasks[0].taskArn"
+)
+
+echo "TASK: ${TASK_ARN}"

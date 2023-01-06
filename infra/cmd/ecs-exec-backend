@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -eu
+
+APP_ENV=$1
+shift
+COMMAND=$@
+
+cd $(dirname $0)
+
+TASK_ARN=$(
+  ./ecs-run-backend $APP_ENV /bin/bash -c "while :; do sleep 10; done" | \
+    sed -e 's/TASK: //g'
+)
+
+echo "TASK: ${TASK_ARN}"
+
+CLUSTER_NAME="venus-${APP_ENV}-backend"
+
+while :; do
+  sleep 5
+
+  STATUS=$(
+    aws ecs describe-tasks --cluster ${CLUSTER_NAME} --tasks ${TASK_ARN} | \
+      jq -r ".tasks[0].containers[0].managedAgents[0].lastStatus"
+  )
+  echo "STATUS: ${STATUS}"
+
+  if [[ "${STATUS}" == "RUNNING" ]]; then
+    break
+  elif [[ "${STATUS}" == "STOPPED" ]]; then
+    exit 1
+  fi
+done
+
+aws ecs execute-command \
+  --cluster ${CLUSTER_NAME} \
+  --task ${TASK_ARN} \
+  --container oneshot \
+  --interactive \
+  --command $COMMAND
+
+aws ecs stop-task \
+  --no-cli-pager \
+  --cluster ${CLUSTER_NAME} \
+  --task ${TASK_ARN} > /dev/null 2>&1
+
+echo "STOPPED TASK"
