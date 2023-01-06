@@ -16,11 +16,11 @@ $ cmd/ecs-run-backend sandbox rails db:migrate
 ## ECSタスクコンテナへの入り方
 
 ```
-$ cmd/ecs-sh-backend <環境名> <コマンド>
+$ cmd/ecs-exec-backend <環境名> <コマンド>
 ```
 
 下記は`sandbox`用のECSタスクに入る例
 
 ```
-$ cmd/ecs-sh-backend sandbox bash
+$ cmd/ecs-exec-backend sandbox bash
 ```
