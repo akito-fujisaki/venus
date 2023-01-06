@@ -50,6 +50,7 @@ runs:
     # https://github.com/docker/build-push-action/issues/252
     # https://github.com/moby/buildkit/issues/1896
     - name: Move cache
+      shell: bash # Shell must be specified in actions
       run: |
         rm -rf /tmp/${{ inputs.cache-key }}/.buildx-cache
         mv /tmp/${{ inputs.cache-key }}/.buildx-cache-new /tmp/${{ inputs.cache-key }}/.buildx-cache
