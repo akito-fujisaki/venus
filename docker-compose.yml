@@ -17,7 +17,7 @@ services:
       - ~/.aws:/root/.aws:ro
     environment:
       - AWS_PROFILE=venus_terraform
-      - TF_VAR_github_repository_name=akito-fujisaki/venus
+      - TF_VAR_github_repository_name=${TF_VAR_github_repository_name:-akito-fujisaki/venus}
   db:
     image: mysql:8.0
     volumes:
