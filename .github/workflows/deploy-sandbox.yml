@@ -3,6 +3,7 @@ on:
   push:
     tags: ['sandbox**']
 permissions:
+  id-token: write
   contents: read
 jobs:
   deploy-backend-api:
@@ -15,5 +16,4 @@ jobs:
           app-name: venus
           app-env: sandbox
           image-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/venus-backend:${{ github.sha }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-account-id: ${{ secrets.AWS_ACCOUNT_ID }}
