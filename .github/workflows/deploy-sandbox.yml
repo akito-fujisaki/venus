@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Deproy backend
+      - name: Deploy backend
         uses: ./.github/actions/deploy
         with:
           app-name: venus
