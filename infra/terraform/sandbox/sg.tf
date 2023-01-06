@@ -1,21 +1,3 @@
-resource "aws_default_security_group" "default" {
-  vpc_id = aws_vpc.main.id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol  = -1
-    self      = true
-    from_port = 0
-    to_port   = 0
-  }
-}
-
 resource "aws_security_group" "elb" {
   description            = "${local.app}-${local.env}-sg-elb"
   name                   = "${local.app}-${local.env}-sg-elb"
