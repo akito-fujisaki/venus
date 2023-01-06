@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -eu
+
+docker compose run --rm infra cmd/ecs-run-backend $@
