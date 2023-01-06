@@ -24,7 +24,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Build task definition
         run: |
-          infra/cmd/build_task_definition.sh \
+          infra/cmd/build-task-definition \
             backend_api \
             ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
             ${{ env.APP_NAME }} \
@@ -50,7 +50,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Build task definition
         run: |
-          infra/cmd/build_task_definition.sh \
+          infra/cmd/build-task-definition \
             backend_oneshot \
             ${{ secrets.ECR_REGISTRY }}/venus-backend:${{ github.sha }} \
             ${{ env.APP_NAME }} \
