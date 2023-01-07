@@ -1,14 +1,214 @@
 # Venus
 
-Railsとインフラの勉強用のリポジトリ
+インフラ勉強用のリポジトリ。
 
-terraformで使用するため、ルートディレクトリに`.env`ファイルを作成し下記のような形で記述する。
+バックエンドはRails、CI/CDにはGithubActionsを使用する。
 
+terraformを利用し、Sandbox環境の作成/削除を何度も行いながら検証できるようにした。
+
+アプリケーションとしては、つぶやき(tweet)のREST APIのみのシンプルなものとなっている。
+
+```
+$ ENDPOINT=$(
+  aws elbv2 describe-load-balancers --names venus-sandbox-backend | \
+  jq -r ".LoadBalancers[0].DNSName"
+)
+
+$ curl http://${ENDPOINT}/tweets
+# => []
+
+$ curl http://${ENDPOINT}/tweets -X POST -H 'Content-Type: application/json' -d '{ "message": "test1" }'
+# => {}
+
+$ curl http://${ENDPOINT}/tweets
+# => [{}]
+```
+
+**NOTE**
+
+リポジトリ名に特に意味はない。星の名前を普段から使っているだけ。
+
+## 環境構築
+
+最低限必要なものは下記のみ。
+- AWSアカウント
+- 管理者権限を持つユーザとそのアクセスキー
+
+アクセスキーは`.env`ファイルに下記のように記載しておくか、`aws-vault`を経由でdocker-composeを起動すること。
+```
+AWS_REGION=ap-northeast-1
+AWS_ACCESS_KEY_ID=example
+AWS_SECRET_ACCESS_KEY=example
+```
+
+GithubActionsからAWSへアクセスする権限を付与する際に必要となる情報を、`.env`ファイルにリポジトリ名を記載する。
 ```
 TF_VAR_github_repository_name=akito-fujisaki/venus
 ```
 
-## ECSタスクを単体で実行
+x86-64/x64アーキテクチャのCPU環境の場合は、`.env`ファイルに下記を追記する。
+arm64の場合は何もしなくてよい。
+
+```
+AWS_CLI_URL=https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+AWS_CLI_SSM_URL=https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb
+TERRAFORM_URL=https://releases.hashicorp.com/terraform/1.3.6/terraform_1.3.6_linux_amd64.zip
+```
+
+## Sandbox環境の作成手順
+
+### 1. AWSリソースの作成
+
+#### 1.1 作業用のinfraコンテナに入る
+
+```
+$ docker-compose run --rm infra bash
+```
+
+**下記がホスト上にインストール済みであればdocker上で実行しなくても問題ない**
+
+- aws-cli
+- aws-cliのssmプラグイン
+- terraform
+
+#### 1.2 commonディレクトリで環境共通のリソースを作成する
+
+```
+$ cd /terraform/common
+$ terraform init
+$ terraform plan
+$ terraform apply
+```
+
+#### 1.3 sandboxディレクトリでSandbox環境のAWSリソースを作成する
+
+※ RDSの作成に5~7分ほどの時間がかかる。
+
+```
+$ cd /terraform/sandbox
+$ terraform init
+$ terraform plan
+$ terraform apply
+```
+
+### 2. Sandbox環境のセットアップ
+
+#### 2.1 GithubActions経由でデプロイする
+
+infraコンテナではなく、ホスト上のプロジェクトルートで実行する。
+
+**main以外では実行できないため、必ずmainブランチに移動すること**
+
+```
+$ cmd/deploy sandbox
+
+# 下記のように出力されるため、確認待ちになったら`Y`を入力する
+Tag: sandbox-20230107093052
+Push tag? (Y/n):
+```
+
+これは、mainブランチの最新コミットに`sandbox`から始まるタグを付け、pushするコマンド。
+このイベントをトリガーとして、GithubActionsでデプロイを行うようにしてある。
+詳しくは`.github/workflows/deploy-sandbox.yml`と`.github/actions/deploy/action.yml`を参照。
+
+**NOTE**
+
+terraformでECSサービスまでを作成するようにしているが、ダミーのタスク定義を登録した上で必要タスク数を「0」としている。
+そのため、ここではタスク定義の登録だけ行われる。
+
+#### 2.2 Railsアプリ用のデータベースを作成し、マイグレーションを実行する
+
+infraコンテナではなく、ホスト上のプロジェクトルートで実行する。
+
+```
+$ cmd/ecs-run-backend sandbox rails db:create db:migrate
+```
+
+これは、`2.1`で登録したECSタスク定義を元にタスクを実行するコマンド。
+実行できているかどうかはCLIかAWSコンソールで確認すること。
+
+#### 2.3 ECSサービスの必要タスクを増やす
+
+terraformでECSサービスまでを作成するようにしているが、ダミーのタスク定義を登録した上で必要タスク数を「0」としている。
+
+Railsタスクを起動できる準備が整ったため、必要タスク数を増やす。
+
+```
+$ docker-compose run --rm infra aws ecs update-service \
+  --cluster venus-sandbox-backend --service api --desired-count 1
+```
+
+### 4. 動作確認
+
+#### 4.1 infraコンテナに入る
+
+```
+$ docker-compose run --rm infra bash
+```
+
+#### 4.2 ロードバランサのDNS名を変数に入れておく
+
+```
+$ ENDPOINT=$(
+  aws elbv2 describe-load-balancers --names venus-sandbox-backend | \
+  jq -r ".LoadBalancers[0].DNSName"
+)
+```
+
+#### 4.3 curlでtweetsのREST APIを叩く
+
+```
+$ curl http://${ENDPOINT}/tweets
+# => []
+
+$ curl http://${ENDPOINT}/tweets -X POST -H 'Content-Type: application/json' -d '{ "message": "test1" }'
+# => {"id":1,"message":"test1","created_at":"2023-01-07T01:06:59.352800+00:00","updated_at":"2023-01-07T01:06:59.352800+00:00"}
+
+$ curl http://${ENDPOINT}/tweets
+# => [{"id":1,"message":"test1","created_at":"2023-01-07T01:06:59.352800+00:00","updated_at":"2023-01-07T01:06:59.352800+00:00"}]
+
+$ curl http://${ENDPOINT}/tweets/1 -X DELETE -H 'Content-Type: application/json'
+# => {"status":"ok","message":"deleted"}
+
+$ curl http://${ENDPOINT}/tweets
+# => []
+```
+
+### 5. AWSリソースの削除
+
+#### 5.1 infraコンテナに入る
+
+```
+$ docker-compose run --rm infra bash
+```
+
+#### 1.2 sandboxディレクトリでSandbox環境のAWSリソースを削除する
+
+※ RDSの削除に5~7分ほどの時間がかかる。
+
+```
+$ cd /terraform/sandbox
+$ terraform init
+$ terraform plan -destroy
+$ terraform destroy
+``` 
+
+#### 1.3 commonディレクトリで環境共通のリソースを削除する
+
+```
+$ cd /terraform/common
+$ terraform init
+$ terraform plan -destroy
+$ terraform destroy
+```
+
+## Sandbox環境のインフラ構成図
+
+![Infra Sandbox](infra/assets/infra_sandbox.png)
+
+## Tips
+
+### ECSタスクを単体で実行
 
 下記はマイグレーションを実行する例
 ```
@@ -16,7 +216,7 @@ TF_VAR_github_repository_name=akito-fujisaki/venus
 $ cmd/ecs-run-backend sandbox rails db:migrate
 ```
 
-## ECSタスクコンテナへ入る
+### ECSタスクコンテナへ入る
 
 下記は`sandbox`用のECSタスクに入る例
 ```
