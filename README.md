@@ -9,6 +9,11 @@ terraformを使用することで、Sandbox環境の作成/削除を何度も行
 アプリケーションは、つぶやき(tweet)のREST APIのみのシンプルなものを用意した。
 
 ```
+$ ENDPOINT=$(
+  aws elbv2 describe-load-balancers --names venus-sandbox-backend | \
+  jq -r ".LoadBalancers[0].DNSName"
+)
+
 $ curl http://${ENDPOINT}/tweets
 # => []
 
