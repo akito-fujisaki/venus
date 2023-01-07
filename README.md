@@ -2,26 +2,27 @@
 
 インフラ勉強用のリポジトリ。
 
-バックエンドはRails、CI/CDにはGithubActionsを使用する。
+バックエンドはRails、インフラ構築はterrafrom、CI/CDにはGithubActionsを使用する。
 
-terraformを利用し、Sandbox環境の作成/削除を何度も行いながら検証できるようにした。
+terraformを使用することで、Sandbox環境の作成/削除を何度も行いながら検証できるようになっている。
 
-アプリケーションとしては、つぶやき(tweet)のREST APIのみのシンプルなものとなっている。
+アプリケーションは、つぶやき(tweet)のREST APIのみのシンプルなものを用意した。
 
 ```
-$ ENDPOINT=$(
-  aws elbv2 describe-load-balancers --names venus-sandbox-backend | \
-  jq -r ".LoadBalancers[0].DNSName"
-)
-
 $ curl http://${ENDPOINT}/tweets
 # => []
 
 $ curl http://${ENDPOINT}/tweets -X POST -H 'Content-Type: application/json' -d '{ "message": "test1" }'
-# => {}
+# => {"id":1,"message":"test1","created_at":"2023-01-07T01:06:59.352800+00:00","updated_at":"2023-01-07T01:06:59.352800+00:00"}
 
 $ curl http://${ENDPOINT}/tweets
-# => [{}]
+# => [{"id":1,"message":"test1","created_at":"2023-01-07T01:06:59.352800+00:00","updated_at":"2023-01-07T01:06:59.352800+00:00"}]
+
+$ curl http://${ENDPOINT}/tweets/1 -X DELETE -H 'Content-Type: application/json'
+# => {"status":"ok","message":"deleted"}
+
+$ curl http://${ENDPOINT}/tweets
+# => []
 ```
 
 **NOTE**
@@ -34,15 +35,17 @@ $ curl http://${ENDPOINT}/tweets
 - AWSアカウント
 - 管理者権限を持つユーザとそのアクセスキー
 
-アクセスキーは`.env`ファイルに下記のように記載しておくか、`aws-vault`を経由でdocker-composeを起動すること。
+アクセスキーは`.env`ファイルに下記のように記載しておくか、`aws-vault`経由でdocker-composeを起動すること。
+
 ```
 AWS_REGION=ap-northeast-1
 AWS_ACCESS_KEY_ID=example
 AWS_SECRET_ACCESS_KEY=example
 ```
 
-GithubActionsからAWSへアクセスする権限を付与する際に必要となる情報を、`.env`ファイルにリポジトリ名を記載する。
+terraformで外部から渡す変数は環境変数として渡すため、`.env`ファイルに下記のように記載する。
 ```
+# GithubActionsでAWSへアクセスするGithubリポジトリ名
 TF_VAR_github_repository_name=akito-fujisaki/venus
 ```
 
@@ -65,7 +68,7 @@ TERRAFORM_URL=https://releases.hashicorp.com/terraform/1.3.6/terraform_1.3.6_lin
 $ docker-compose run --rm infra bash
 ```
 
-**下記がホスト上にインストール済みであればdocker上で実行しなくても問題ない**
+下記がホスト上にインストール済みであればdocker上で実行しなくても問題ない
 
 - aws-cli
 - aws-cliのssmプラグイン
@@ -107,13 +110,15 @@ Tag: sandbox-20230107093052
 Push tag? (Y/n):
 ```
 
-これは、mainブランチの最新コミットに`sandbox`から始まるタグを付け、pushするコマンド。
+mainブランチの最新コミットに`sandbox`から始まるタグを付け、pushするコマンド。
+
 このイベントをトリガーとして、GithubActionsでデプロイを行うようにしてある。
 詳しくは`.github/workflows/deploy-sandbox.yml`と`.github/actions/deploy/action.yml`を参照。
 
 **NOTE**
 
 terraformでECSサービスまでを作成するようにしているが、ダミーのタスク定義を登録した上で必要タスク数を「0」としている。
+
 そのため、ここではタスク定義の登録だけ行われる。
 
 #### 2.2 Railsアプリ用のデータベースを作成し、マイグレーションを実行する
@@ -124,7 +129,7 @@ infraコンテナではなく、ホスト上のプロジェクトルートで実
 $ cmd/ecs-run-backend sandbox rails db:create db:migrate
 ```
 
-これは、`2.1`で登録したECSタスク定義を元にタスクを実行するコマンド。
+`2.1`で登録したECSタスク定義を元にタスクを実行するコマンド。
 実行できているかどうかはCLIかAWSコンソールで確認すること。
 
 #### 2.3 ECSサービスの必要タスクを増やす
@@ -204,7 +209,7 @@ $ terraform destroy
 
 ## Sandbox環境のインフラ構成図
 
-![Infra Sandbox](infra/assets/infra_sandbox.png)
+![Infra Sandbox](infra/assets/infra_sandbox.jpg)
 
 ## Tips
 
